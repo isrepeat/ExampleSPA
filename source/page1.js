@@ -42,23 +42,48 @@ class Page1 extends React.Component
             let N = Dim-1;              // для удобства сравнения i==N-j (вместо i==N-1-j)
             let combo = [];             // выиграшные комбинации индексов
             
-            // k = номер строки; в матрицу поля заносим true если ячейка находится в k-й строке, затем линеаризуем матрицу,
-            // вместо true ставим индекс в линеаризованном массиве и фильтруем => вернется массив длинной Dim типа [0,1,2]
-            for(let k=0; k<=N; k++)
-            combo.push(field.map((row,i) => row.map((col,j) => i==k   ?true:null)).flat().map((el,i) => el ?i:null).filter(el => el!==null));
+            //поскольку flat() не поддерживается в Edge, то для линеаризации двумерного массива используем свой метод.
 
-            // k = номер столбца; в матрицу поля заносим true если ячейка находится в k-м столбце, затем линеаризуем матрицу,
-            // вместо true ставим индекс в линеаризованном массиве и фильтруем => вернется массив длинной Dim типа [0,3,6]
-            for(let k=0; k<=N; k++) 
-            combo.push(field.map((row,i) => row.map((col,j) => j==k   ?true:null)).flat().map((el,i) => el ?i:null).filter(el => el!==null));
+            // k - номер строки; 
+            // N - количество возможных кобминаций в строках
+            for(let k=0; k<=N; k++)
+            {
+                // проходимся по строкам, а в каждой строке по столбцам => ставим true в ячейку, если текущая строка матрицы == k
+                // затем линеаризуем матрицу, вместо true ставим индекс в линеаризованном массиве и фильтруем =>
+                // вернется массив длинной Dim типа [0,1,2] (строка)
+                let temp = field.map((row,i) => row.map((col,j) => i==k   ?true:null));
+                    temp = [].concat(...temp);
+                combo.push( temp.map((el, i) => el ?i:null).filter(el => el!==null) );
+            }
+
+            // k - номер столбца; 
+            // N - количество возможных кобминаций в столбцах
+            for(let k=0; k<=N; k++)
+            {
+                // проходимся по строкам, а в каждой строке по столбцам => ставим true в ячейку, если текущий столбец матрицы == k
+                // затем линеаризуем матрицу, вместо true ставим индекс в линеаризованном массиве и фильтруем =>
+                // вернется массив длинной Dim типа [0,3,6] (столбец)
+                let temp = field.map((row,i) => row.map((col,j) => j==k   ?true:null));
+                    temp = [].concat(...temp);
+                combo.push( temp.map((el, i) => el ?i:null).filter(el => el!==null) );
+            }
 
             // в матрицу поля заносим true если ячейка находится на главной/побочной диагонали, затем линеаризуем матрицу,
-            // вместо true ставим индекс в линеаризованном массиве и фильтруем => вернется массив длинной Dim типа [0,4,8]
-            combo.push(field.map((row,i) => row.map((col,j) => i==j   ?true:null)).flat().map((el,i) => el ?i:null).filter(el => el!==null));
-            combo.push(field.map((row,i) => row.map((col,j) => i==N-j ?true:null)).flat().map((el,i) => el ?i:null).filter(el => el!==null));
+            // вместо true ставим индекс в линеаризованном массиве и фильтруем => вернется массив длинной Dim типа [0,4,8] (диагональ)
+            {
+                let temp = field.map((row,i) => row.map((col,j) => i==j   ?true:null));
+                    temp = [].concat(...temp);
+                combo.push( temp.map((el, i) => el ?i:null).filter(el => el!==null) );
+            }
+            {
+                let temp = field.map((row,i) => row.map((col,j) => i==N-j ?true:null));
+                    temp = [].concat(...temp);
+                combo.push( temp.map((el, i) => el ?i:null).filter(el => el!==null) );
+            }
 
-            field = field.flat();       // линеаризуем field чтобы обращаятся к нему так: field[combo[x][y]]...
-            
+            //field = field.flat();       
+            field = [].concat(...field);    // линеаризуем field чтобы обращаятся к нему так: field[combo[x][y]]...
+
             for(let win, k=0; k<combo.length; k++) 
             {
                 win=true;   for(let j=0; j<=N; j++) if(field[combo[k][j]]!=='x') {win=false; break;}    if(win) return ['X', combo[k]];
